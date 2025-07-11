@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Portfolio Dashboard</title>
+    <meta name="description" content="Filter and rank your projects across Vercel, v0, and Netlify platforms">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1><i class="fas fa-project-diagram"></i> Project Portfolio Dashboard</h1>
+                <p>Filter and rank your projects across Vercel, v0, and Netlify</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="addNewProject()">
+                    <i class="fas fa-plus"></i> Add Project
+                </button>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="platform-filter">Platform:</label>
+                    <select id="platform-filter" onchange="filterProjects()">
+                        <option value="">All Platforms</option>
+                        <option value="vercel">Vercel</option>
+                        <option value="v0">v0</option>
+                        <option value="netlify">Netlify</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="status-filter">Status:</label>
+                    <select id="status-filter" onchange="filterProjects()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="archived">Archived</option>
+                        <option value="development">Development</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="priority-filter">Priority:</label>
+                    <select id="priority-filter" onchange="filterProjects()">
+                        <option value="">All Priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="search-filter">Search:</label>
+                    <input type="text" id="search-filter" placeholder="Search projects..." onkeyup="filterProjects()">
+                </div>
+            </div>
+            
+            <div class="sort-controls">
+                <label for="sort-by">Sort by:</label>
+                <select id="sort-by" onchange="sortProjects()">
+                    <option value="lastUpdated">Last Updated</option>
+                    <option value="name">Name</option>
+                    <option value="priority">Priority</option>
+                    <option value="status">Status</option>
+                    <option value="platform">Platform</option>
+                </select>
+                <button class="btn btn-icon" onclick="toggleSortOrder()" id="sort-order-btn">
+                    <i class="fas fa-sort-amount-down"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Stats Overview -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon vercel">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="vercel-count">0</h3>
+                        <p>Vercel Projects</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon v0">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="v0-count">0</h3>
+                        <p>v0 Projects</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon netlify">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="netlify-count">0</h3>
+                        <p>Netlify Projects</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon total">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-count">0</h3>
+                        <p>Total Projects</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Grid -->
+        <section class="projects-section">
+            <div class="projects-header">
+                <h2>Projects</h2>
+                <div class="view-controls">
+                    <button class="btn btn-icon active" onclick="setViewMode('grid')" id="grid-view-btn">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="btn btn-icon" onclick="setViewMode('list')" id="list-view-btn">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="projects-container" id="projects-container">
+                <!-- Projects will be dynamically loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Add/Edit Project Modal -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Project</h2>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="project-form" onsubmit="saveProject(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="project-name">Project Name *</label>
+                        <input type="text" id="project-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-platform">Platform *</label>
+                        <select id="project-platform" required>
+                            <option value="">Select Platform</option>
+                            <option value="vercel">Vercel</option>
+                            <option value="v0">v0</option>
+                            <option value="netlify">Netlify</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-url">Project URL</label>
+                        <input type="url" id="project-url" placeholder="https://...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-repo">Repository URL</label>
+                        <input type="url" id="project-repo" placeholder="https://github.com/...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-status">Status *</label>
+                        <select id="project-status" required>
+                            <option value="">Select Status</option>
+                            <option value="active">Active</option>
+                            <option value="development">Development</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-priority">Priority *</label>
+                        <select id="project-priority" required>
+                            <option value="">Select Priority</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="project-description">Description</label>
+                    <textarea id="project-description" rows="3" placeholder="Brief description of the project..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="project-notes">Notes</label>
+                    <textarea id="project-notes" rows="3" placeholder="Additional notes, tasks, or reminders..."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="dashboard-script.js"></script>
+</body>
+</html>
